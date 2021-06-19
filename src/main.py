@@ -1,8 +1,9 @@
 import argparse
 from pyspark.sql import SparkSession, DataFrame
 from utils import Utils
-from dependencies import *
-from analytics import *
+from dependencies import files
+from analytics import AccidentAnalysis, TwoWheelersAnalysis, TopStatesCrashes, TopVehicleCrashes, BodyStyleAnalysis, \
+    TopZipCodes, SafeCrashes, TopSpeedingVehicles
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Big Data Case Study")
