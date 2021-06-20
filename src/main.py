@@ -30,22 +30,23 @@ if __name__ == "__main__":
         "safe_crashes": SafeCrashes,
         "top_speeding_vehicles_crashes": TopSpeedingVehicles
     }
-
-    spark = SparkSession \
-        .builder \
-        .config("spark.app.name", "BCG Accidents Analytics Use case") \
-        .config("spark.shuffle.partition", 3) \
-        .getOrCreate()
     try:
-        res = pipelines[analytics_type].execute(session=spark, files=files)
+        spark = SparkSession \
+            .builder \
+            .config("spark.app.name", "BCG Accidents Analytics Use case") \
+            .getOrCreate()
 
-        if isinstance(res, DataFrame):
-            Utils.save(res, file_format=output_file_format, output_path=output_path)
+        # Selects the pipeline and starts processing 
+        result = pipelines[analytics_type].execute(session=spark, files=files)
+
+        if isinstance(result, DataFrame):
+            Utils.save(result, file_format=output_file_format, output_path=output_path)
         else:
-            print(f"{str(analytics_type).upper()}: {res}")
+            print(f"{str(analytics_type).upper()}: {result}")
 
     except Exception as err:
         logger.error("%s Error : %s", __name__, str(err))
+
     finally:
         spark.stop()
         logger.debug("Successfully completed the pipeline - %s ", str(analytics_type).upper())
