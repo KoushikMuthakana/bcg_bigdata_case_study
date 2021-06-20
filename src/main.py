@@ -36,7 +36,7 @@ if __name__ == "__main__":
             .config("spark.app.name", "BCG Accidents Analytics Use case") \
             .getOrCreate()
 
-        # Selects the pipeline and starts processing 
+        # Selects the pipeline and starts processing
         result = pipelines[analytics_type].execute(session=spark, files=files)
 
         if isinstance(result, DataFrame):
