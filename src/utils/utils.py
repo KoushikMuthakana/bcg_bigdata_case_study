@@ -1,3 +1,6 @@
+from .logger import logger
+
+
 class Utils:
 
     @staticmethod
@@ -12,15 +15,18 @@ class Utils:
         :return: DataFrame ->     `pyspark.sql.DataFrame`
 
         """
-
-        data_df = session.read \
-            .format("csv") \
-            .option("delimiter", delimiter) \
-            .schema(schema) \
-            .option("header", header) \
-            .option("path", path) \
-            .load()
-        return data_df
+        try:
+            data_df = session.read \
+                .format("csv") \
+                .option("delimiter", delimiter) \
+                .schema(schema) \
+                .option("header", header) \
+                .option("path", path) \
+                .load()
+            logger.debug("Read the file- %s", path)
+            return data_df
+        except Exception as err:
+            logger.error("%s, Error: %s", str(__name__), str(err))
 
     @staticmethod
     def save(dataframe, file_format, output_path):
@@ -31,8 +37,15 @@ class Utils:
         :param output_path: String -> Output path
         :return: None
         """
-        dataframe.write \
-            .format(file_format) \
-            .mode("append")\
-            .option("path", output_path) \
-            .save()
+        try:
+            dataframe.write \
+                .format(file_format) \
+                .mode("append") \
+                .option("path", output_path) \
+                .save()
+            logger.debug("Written the file- %s", output_path)
+            return "Success"
+        except Exception as err:
+            logger.error("%s, Error: %s", str(__name__), str(err))
+
+

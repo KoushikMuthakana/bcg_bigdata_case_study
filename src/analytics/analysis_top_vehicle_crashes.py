@@ -35,7 +35,7 @@ class TopVehicleCrashes:
                                   schema=schemas.units_schema)
 
         top_vehicles_crashes = units_df.groupBy("VEH_MAKE_ID") \
-            .agg(sum("DEATH_CNT").alias("totaldeaths")) \
+            .agg(sum("DEATH_CNT").alias("TOTAL_DEATHS")) \
             .orderBy(col("TOTAL_DEATHS"))
 
         window = Window.orderBy(desc("TOTAL_DEATHS"))
@@ -44,7 +44,6 @@ class TopVehicleCrashes:
             withColumn("id", dense_rank().over(window)) \
             .filter((col("id") >= 5) & (col("id") <= 15)).drop("id")
 
-        top_range.show()
 
         return top_range
 
