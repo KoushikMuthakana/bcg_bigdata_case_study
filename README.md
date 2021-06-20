@@ -7,6 +7,43 @@ Provide the useful insights using the sample database of vehicle accidents acros
 
 Data Set folder has 6 csv files. Please use the data dictionary (attached in the mail) to understand the dataset and then develop your approach to perform below analytics.
 
+#### Project Structure
+
+```
+.
+├── src
+│   ├── config.yml
+│   ├── main.py
+│   ├── dependencies.py
+│   └── requirements.txt
+│   └── analytics
+│   │   ├── __init__.py
+│   │   └── analysis_body_styles_crashes.py
+│   │   ├── analysis_safe_crashes.py
+│   │   └── analysis_top_speeding_vehicles.py
+│   │   └── analysis_top_state.py
+│   │   └── analysis_top_vehicle_crashes.py
+│   │   └── analysis_top_zip_codes.py
+│   │   └── analysis_total_crashes.py
+│   │   └── analysis_two_wheelers.py
+│   └── inputs
+│       ├── Charges_use.csv
+│       └── Damages_use.csv
+│       └── Endorse_use.csv
+│       └── Primary_Person_use.csv
+│       └── Restrict_use.csv
+│       └── Units_use.csv
+│   └── utils
+│       └── __init__.csv
+│       └── schemas.py
+│       └── utils.py
+│   └── tests
+├── README.md
+
+```
+
+
+
 ##### Analytics:
 ##### Application should perform below analysis and store the results for each analysis.
 
@@ -59,7 +96,7 @@ Update the input file directory in the yaml file and file names.
 Note: No need to handle in code, if any files name gets renamed
 
 
-### Execution Steps:
+### Execution Steps [Local]:
 
 Analytics 1: Find the number of crashes (accidents) in which number of persons killed are male?
 
@@ -83,7 +120,7 @@ Analysis 5: For all the body styles involved in crashes, mention the top ethnic 
 
 Analysis 6: Among the crashed cars, what are the Top 5 Zip Codes with highest number crashes with alcohols as the contributing factor to a crash (Use Driver Zip Code)
 
-        spark-submit --master local[*] main.py --pipeline top_zip_codes --output_file_path <path> --output_format <fileformat>        
+        spark-submit --master local[*] main.py --pipeline top_zip_codes_crashes --output_file_path <path> --output_format <fileformat>        
 
 Analysis 7: Count of Distinct Crash IDs where No Damaged Property was observed and Damage Level (VEH_DMAG_SCL~) is above 4 and car avails Insurance
     
@@ -91,5 +128,5 @@ Analysis 7: Count of Distinct Crash IDs where No Damaged Property was observed a
 
 Analysis 8: Determine the Top 5 Vehicle Makes where drivers are charged with speeding related offences, has licensed Drivers, uses top 10 used vehicle colours and has car licensed with the Top 25 states with highest number of offences (to be deduced from the data)
     
-        spark-submit --master local[*] main.py --pipeline top_speeding --output_file_path <path> --output_format <fileformat>
+        spark-submit --master local[*] main.py --pipeline top_speeding_vehicles_crashes --output_file_path <path> --output_format <fileformat>
 

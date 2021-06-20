@@ -14,11 +14,22 @@ class TwoWheelersAnalysis:
         :param session: SparkSession : `~pyspark.sql.SparkSession`
         :param files: Yaml config['files']
         :return:  Returns a : Int
+
+        Sample output
+        +----------------------------------+
+        | TOTAL_TWO_WHEELERS_CRASHES: 781  |
+        +----------------------------------+
+
         """
+
+        # Input files path
         source_path = files['inputpath']
         units_use_csv_path = source_path + "/" + files["units"]
+
+        # Loads the inputs files data
         units_df = Utils.load_csv(session=session, path=units_use_csv_path, header=True,
                                   schema=schemas.units_schema)
+
         return units_df.filter(col("VEH_BODY_STYL_ID") == "MOTORCYCLE").count()
 
     @staticmethod

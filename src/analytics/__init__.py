@@ -1,6 +1,6 @@
 from .analysis_total_crashes import AccidentAnalysis
 from .analysis_two_wheelers import TwoWheelersAnalysis
-from .analysis_top_states import TopStatesCrashes
+from .analysis_top_state import TopStatesCrashes
 from .analysis_top_vehicle_crashes import TopVehicleCrashes
 from .analysis_body_styles_crashes import BodyStyleAnalysis
 from .analysis_top_zip_codes import TopZipCodes

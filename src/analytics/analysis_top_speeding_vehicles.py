@@ -15,44 +15,83 @@ class TopSpeedingVehicles:
 
         :param session: SparkSession : `~pyspark.sql.SparkSession`
         :param files: Yaml config['files']
-        :return:  Returns a : Int
+        :return:  Returns a : Dataframe `~spark.sql.SparkSession`
+
+        Sample output:
+
+        |VEH_MAKE_ID|
+        +-----------+
+        |       FORD|
+        |      HONDA|
+        |     SUBARU|
+        |    HYUNDAI|
+        ------------
         """
+        # Input files path
         source_path = files['inputpath']
         charges_use_csv_path = source_path + "/" + files["charges"]
+        person_use_csv_path = source_path + "/" + files["person"]
+        units_use_csv_path = source_path + "/" + files["units"]
 
+        # Reading from the CSV files
         charges_df = Utils.load_csv(session=session, path=charges_use_csv_path, header=True,
                                     schema=schemas.charges_schema)
-        person_use_csv_path = source_path + "/" + files["person"]
+
         person_df = Utils.load_csv(session=session, path=person_use_csv_path, header=True,
                                    schema=schemas.primary_person_schema)
-        units_use_csv_path = source_path + "/" + files["units"]
+
         units_df = Utils.load_csv(session=session, path=units_use_csv_path, header=True,
                                   schema=schemas.units_schema)
+
+        # Joining on charges data with person data on crash_id
         join_condition = charges_df.CRASH_ID == person_df.CRASH_ID
         join_type = "inner"
-        speeding_with_licences = charges_df.join(person_df, join_condition, join_type).where(
-            col("CHARGE").like("%SPEED%")) \
-            .select(charges_df.CRASH_ID, charges_df.CHARGE,charges_df.UNIT_NBR, person_df.DRVR_LIC_TYPE_ID, person_df.DRVR_LIC_STATE_ID,
-                    person_df.DRVR_LIC_CLS_ID) \
-            .where(col("DRVR_LIC_TYPE_ID") == "DRIVER LICENSE")
-        speeding_with_licences.show()
 
-        top_states_offences = person_df.groupBy("DRVR_LIC_STATE_ID").count().orderBy(col("count").desc())
-        top_licended_vehicle_colors = units_df.join(person_df, units_df.CRASH_ID == person_df.CRASH_ID, "inner") \
-            .where(col("DRVR_LIC_TYPE_ID") == "DRIVER LICENSE") \
-            .groupBy("VEH_COLOR_ID").count().orderBy(col("count").desc())
+        # charges with speed related offences with driver licences
+        speeding_with_licences = charges_df.join(person_df, join_condition, join_type)\
+            .where((col("CHARGE").like("%SPEED%")) &
+                   (col("DRVR_LIC_TYPE_ID") == "DRIVER LICENSE")) \
+            .select(charges_df.CRASH_ID,
+                    charges_df.CHARGE,
+                    charges_df.UNIT_NBR,
+                    person_df.DRVR_LIC_TYPE_ID,
+                    person_df.DRVR_LIC_STATE_ID,
+                    person_df.DRVR_LIC_CLS_ID
+                    )
 
-        speeding_with_licences.join(top_states_offences, speeding_with_licences.DRVR_LIC_STATE_ID == top_states_offences.DRVR_LIC_STATE_ID, "inner") \
-            .groupBy("UNIT_NBR").count()\
+        # Top states with highest number of offences
+        top_states_offences = person_df\
+            .groupBy("DRVR_LIC_STATE_ID")\
+            .count()\
+            .orderBy(col("count").desc()).take(25)
 
+        # Top used vehicles colours with licenced
+        top_licensed_vehicle_colors = units_df.\
+            join(person_df, units_df.CRASH_ID == person_df.CRASH_ID, "inner") \
+            .where((col("DRVR_LIC_TYPE_ID") == "DRIVER LICENSE")
+                   & (col("DRVR_LIC_CLS_ID").like("CLASS C%"))) \
+            .groupBy("VEH_COLOR_ID")\
+            .count()\
+            .orderBy(col("count").desc()).take(10)
+
+        top_colors = [i["VEH_COLOR_ID"] for i in top_licensed_vehicle_colors]
+        top_states = [i['DRVR_LIC_STATE_ID'] for i in top_states_offences]
+
+        top_vehicles_made = speeding_with_licences\
+            .join(units_df, speeding_with_licences.CRASH_ID == units_df.CRASH_ID, "inner") \
+            .where((col("VEH_COLOR_ID").isin(top_colors))
+                   & (col("DRVR_LIC_STATE_ID").isin(top_states))) \
+            .select("VEH_MAKE_ID")
+
+        return top_vehicles_made
 
     @staticmethod
     def execute(session, files):
         """
              Invokes the process methods to get tha analysis report
 
-        :param session: SparkSession -> Spark Session object
-        :param files: Config
-        :return: Integer -> Total No of crashes
+        :param session: SparkSession : `~pyspark.sql.SparkSession`
+        :param files: Yaml config['files']
+        :return: Dataset `~pyspark.sql.dataframe` -> Top Vehicles colors
         """
         return TopSpeedingVehicles.__process(TopSpeedingVehicles, session, files)

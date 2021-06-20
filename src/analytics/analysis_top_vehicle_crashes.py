@@ -14,20 +14,39 @@ class TopVehicleCrashes:
 
         :param session: SparkSession : `~pyspark.sql.SparkSession`
         :param files: Yaml config['files']
-        :return:  Returns a : Int
+        :return:  Returns a : Dataframe
+
+        Sample output
+        +---------------+-----------+
+        |    VEH_MAKE_ID|TOTAL_DEATHS|
+        +---------------+-----------+
+        |         TOYOTA|         20|
+        |          HONDA|         17|
+        |HARLEY-DAVIDSON|         15|
+        |          DODGE|         12|
+        |         SUZUKI|          8|
+        |       CHRYSLER|          6|
+        -----------------------------
         """
         source_path = files['inputpath']
         units_use_csv_path = source_path + "/" + files["units"]
+
         units_df = Utils.load_csv(session=session, path=units_use_csv_path, header=True,
                                   schema=schemas.units_schema)
+
         top_vehicles_crashes = units_df.groupBy("VEH_MAKE_ID") \
             .agg(sum("DEATH_CNT").alias("totaldeaths")) \
-            .orderBy(col("totaldeaths"))
-        window = Window.orderBy(desc("totaldeaths"))
-        top_fifths = top_vehicles_crashes. \
+            .orderBy(col("TOTAL_DEATHS"))
+
+        window = Window.orderBy(desc("TOTAL_DEATHS"))
+
+        top_range = top_vehicles_crashes. \
             withColumn("id", dense_rank().over(window)) \
             .filter((col("id") >= 5) & (col("id") <= 15)).drop("id")
-        return top_fifths
+
+        top_range.show()
+
+        return top_range
 
     @staticmethod
     def execute(session, files):

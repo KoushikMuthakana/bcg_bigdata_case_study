@@ -14,18 +14,29 @@ class TopStatesCrashes:
         :param session: SparkSession : `~pyspark.sql.SparkSession`
         :param files: Yaml config['files']
         :return:  Returns a : Int
+
+        Sample Output:
+        |---------------------------------|
+        | TOP_STATE_CRASHES: Texas - 53319|
+        |---------------------------------|
+
         """
+
+        # Input files path
         source_path = files['inputpath']
         person_use_csv_path = source_path + "/" + files["person"]
 
+        # Loads the files data
         person_df = Utils.load_csv(session=session, path=person_use_csv_path, header=True,
                                    schema=schemas.primary_person_schema)
-        result = person_df.filter(person_df.PRSN_GNDR_ID == "FEMALE") \
+
+        top_state_crashes = person_df.filter(person_df.PRSN_GNDR_ID == "FEMALE") \
             .groupBy("DRVR_LIC_STATE_ID") \
             .agg(count(col("CRASH_ID")).alias("TotalCrashes")) \
             .orderBy(col("TotalCrashes").desc())\
             .first()
-        return result["DRVR_LIC_STATE_ID"] + " - " + str(result["TotalCrashes"])
+
+        return top_state_crashes["DRVR_LIC_STATE_ID"] + " - " + str(top_state_crashes["TotalCrashes"])
 
     @staticmethod
     def execute(session, files):

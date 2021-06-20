@@ -17,17 +17,33 @@ class SafeCrashes:
 
         :param session: SparkSession : `~pyspark.sql.SparkSession`
         :param files: Yaml config['files']
-        :return:  Returns a : Int
+        :return:  Returns a : Integer
+
+        Sample output
+        +-------------------------+
+        |SAFE_CRASHES  : 1934     |
+        --------------------------
+
         """
+
+        # Input Files paths
         source_path = files['inputpath']
         units_use_csv_path = source_path + "/" + files["units"]
+
+        # Reads the CSV files
         units_df = Utils.load_csv(session=session, path=units_use_csv_path, header=True,
                                   schema=schemas.units_schema)
-        filtered_data = units_df.where(
-            ((col("VEH_DMAG_SCL_1_ID") == "NO DAMAGE") & (col("VEH_DMAG_SCL_2_ID") == 'NO DAMAGE')) |
-            ((regexp_extract("VEH_DMAG_SCL_1_ID", '\d+', 0) > 4) & (regexp_extract("VEH_DMAG_SCL_2_ID", '\d+', 0) > 4))
-            & col("FIN_RESP_TYPE_ID").contains("INSURANCE")
-            ).select("CRASH_ID", "FIN_RESP_TYPE_ID", "VEH_DMAG_SCL_1_ID", "VEH_DMAG_SCL_2_ID")
+        filtered_data = units_df \
+            .where(((col("VEH_DMAG_SCL_1_ID") == "NO DAMAGE") &
+                    (col("VEH_DMAG_SCL_2_ID") == 'NO DAMAGE')) |
+                   ((regexp_extract("VEH_DMAG_SCL_1_ID", '\d+', 0) > 4)
+                    & (regexp_extract("VEH_DMAG_SCL_2_ID", '\d+', 0) > 4))
+                   & col("FIN_RESP_TYPE_ID").contains("INSURANCE")
+                   ).select("CRASH_ID",
+                            "FIN_RESP_TYPE_ID",
+                            "VEH_DMAG_SCL_1_ID",
+                            "VEH_DMAG_SCL_2_ID")
+
         unique_crash_id = filtered_data.select("CRASH_ID").distinct().count()
         return unique_crash_id
 
