@@ -1,4 +1,4 @@
-## Big Data Case Study
+## BCG - Big Data Case Study
 ---
 
 Provide the useful insights using the sample database of vehicle accidents across US for brief amount of time
